@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+venv/
+.evn
+
+#java/maven
+target/
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+#Node / frontend
+node_modules/
+build/
+.DS_store
+
+#Docker
+docker_compose.log
+
+#IDEs
+.vscode/
+.idea/

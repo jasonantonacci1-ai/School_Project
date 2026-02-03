@@ -1,0 +1,82 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: myUser
+      MONGO_INITDB_ROOT_PASSWORD: myPassword
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - kindergarten-net
+
+  employeeservice:
+    build: ./employeeservice
+    container_name: employeeservice
+    environment:
+      MONGODB_URI: "mongodb://myUser:myPassword@mongo:27017/kindergarten?authSource=admin"
+      DATABASE_NAME: "kindergarten"
+    command: ["/bin/sh", "-c", "sleep 60; python3 app.py"]
+    depends_on:
+      - mongo
+    networks:
+      - kindergarten-net
+
+  studentservice:
+    build: ./studentservice
+    container_name: studentservice
+    environment:
+      MONGODB_URI: "mongodb://myUser:myPassword@mongo:27017/kindergarten?authSource=admin"
+      DATABASE_NAME: "kindergarten"
+    command: ["/bin/sh", "-c", "sleep 60; ./main"]
+    depends_on:
+      - mongo
+    networks:
+      - kindergarten-net
+
+  teacherservice:
+    build: ./teacherservice
+    container_name: teacherservice
+    environment:
+      MONGODB_URI: "mongodb://myUser:myPassword@mongo:27017/kindergarten?authSource=admin"
+      DATABASE_NAME: "kindergarten"
+    command: ["/bin/sh", "-c", "sleep 60; java -jar teacherservice-1.0.0.jar"]
+    depends_on:
+      - mongo
+    networks:
+      - kindergarten-net
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    depends_on:
+      - employeeservice
+      - studentservice
+      - teacherservice
+    networks:
+      - kindergarten-net
+
+nginx:
+  image: nginx:latest
+  container_name: nginx
+  ports: 
+    - "80:80"
+  volumes:
+    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  depends_on:
+    - frontend
+    - studentservice
+    - teacherservice
+    - employeeservice
+  networks:
+    kindergarten-net
+
+volumes:
+  mongo-data:
+
+networks:
+  kindergarten-net:
+    driver: bridge
