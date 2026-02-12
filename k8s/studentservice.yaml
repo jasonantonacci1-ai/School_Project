@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: studentservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: studentservice
+  template:
+    metadata:
+      labels:
+        app: studentservice
+    spec:
+      containers:
+      - name: studentservice
+        image: jasonantonacci1/studentservice:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5001
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: mongodb-uri
+        - name: DATABASE_NAME
+          value: "kindergarten"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: studentservice
+spec:
+  selector:
+    app: studentservice
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: employeeservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: employeeservice
+  template:
+    metadata:
+      labels:
+        app: employeeservice
+    spec:
+      containers:
+      - name: employeeservice
+        image: jasonantonacci1/employeeservice:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5003
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: mongodb-uri
+        - name: DATABASE_NAME
+          value: "kindergarten"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: employeeservice
+spec:
+  selector:
+    app: employeeservice
+  ports:
+    - protocol: TCP
+      port: 5003
+      targetPort: 5003

@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kindergarten-alerts
+  namespace: monitor
+  labels:
+    release: test1
+spec:
+  groups:
+  - name: kindergarten.rules
+    rules:
+    - alert: KindergartenPodDown
+      expr: kube_pod_status_ready{namespace="default", condition="false"} == 1
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod {{ $labels.pod }} is down"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been in a non-ready state for more than 2 minutes."
+    - alert: KindergartenServiceHighErrorRate
+      expr: rate(http_requests_total{status=~"5.."}[5m]) > 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate on {{ $labels.service }}"
+        description: "Service {{ $labels.service }} is returning 5xx errors."

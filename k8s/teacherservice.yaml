@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teacherservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teacherservice
+  template:
+    metadata:
+      labels:
+        app: teacherservice
+    spec:
+      containers:
+      - name: teacherservice
+        image: jasonantonacci1/teacherservice:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5002
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: mongodb-uri
+        - name: DATABASE_NAME
+          value: "kindergarten"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teacherservice
+spec:
+  selector:
+    app: teacherservice
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 5002
